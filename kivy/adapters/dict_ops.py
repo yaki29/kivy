@@ -9,21 +9,35 @@ dict_ops
     This code is still experimental, and its API is subject to change in a
     future version.
 
-An :class:`~kivy.adapters.dict_ops.DictOpHandler` and
-:class:`~kivy.adapters.dict_ops.DictOpInfo` are used in association with an
+An :class:`~kivy.adapters.dict_ops.OpDictHandler` and
+:class:`~kivy.adapters.dict_ops.OpDictInfo` are used in association with an
 adapter, controller, or other Kivy object that needs to manage its own
 DictProperty instances that use an OpObservableDict. A DictProperty of this
 type dispatches on a per-op basis, requiring the handling of individual op
 reactions.
 '''
-__all__ = ('DictOpHandler', 'DictOpInfo')
 
-from kivy.properties import DictOpHandler
-from kivy.properties import DictOpInfo
+__all__ = ('OpDictHandler', 'OpDictInfo')
+
+from kivy.properties import OpDictInfo
 
 
-class AdapterDictOpHandler(DictOpHandler):
-    ''':class:`~kivy.adapters.dict_ops.AdapterDictOpHandler` is a helper class
+class OpDictHandler(object):
+    '''A :class:`OpDictHandler` may react to the following operations that are
+    possible for a OpObservableDict instance:
+
+    '''
+
+    def data_changed(self, *args):
+        '''This method receives the callback for a data change to
+        self.source_dict, and calls the appropriate methods, reacting to
+        cover the possible operation events listed above.
+        '''
+        pass
+
+
+class AdapterOpDictHandler(OpDictHandler):
+    ''':class:`~kivy.adapters.dict_ops.AdapterOpDictHandler` is a helper class
     for :class:`~kivy.adapters.dictadapter.DictAdapter`. It reacts to the
     operations listed below that are possible for a OpObservableDict
     (OOD) instance in an adapter.
@@ -56,10 +70,6 @@ class AdapterDictOpHandler(DictOpHandler):
         These methods adjust cached_views and selection for the adapter.
     '''
 
-    def __init__(self):
-
-        super(AdapterDictOpHandler, self).__init__()
-
     def data_changed(self, *args):
 
         self.adapter = args[0]
@@ -69,7 +79,7 @@ class AdapterDictOpHandler(DictOpHandler):
         if len(args) == 3:
             op_info = args[2]
         else:
-            op_info = DictOpInfo('OOD_set', (None, ))
+            op_info = OpDictInfo('OOD_set', (None, ))
 
         # Make a copy for more convenient access by observers.
         self.adapter.op_info = op_info

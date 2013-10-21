@@ -9,22 +9,36 @@ list_ops
     This code is still experimental, and its API is subject to change in a
     future version.
 
-An :class:`~kivy.adapters.dict_ops.ListOpHandler` and
-:class:`~kivy.adapters.dict_ops.ListOpInfo` are used in association with an
+An :class:`~kivy.adapters.dict_ops.OpListHandler` and
+:class:`~kivy.adapters.dict_ops.OpListInfo` are used in association with an
 adapter, controller, or other Kivy object that needs to manage its own
 ListProperty instances that use an OpObservableList. A ListProperty of this
 type dispatches on a per-op basis, requiring the handling of individual op
 reactions.
 '''
 
-__all__ = ('ListOpHandler', 'ListOpInfo')
+__all__ = ('OpListHandler', 'OpListInfo')
 
-from kivy.properties import ListOpHandler
-from kivy.properties import ListOpInfo
+from kivy.properties import OpListInfo
 
 
-class AdapterListOpHandler(ListOpHandler):
-    ''':class:`~kivy.adapters.list_ops.AdapterListOpHandler` is a helper class
+class OpListHandler(object):
+    '''A :class:`OpListHandler` reacts to the following operations that are
+    possible for a OpObservableList (OOL) instance, categorized as
+    follows:
+
+    '''
+
+    def data_changed(self, *args):
+        '''This method receives the callback for a data change to
+        self.source_list, and calls the appropriate methods, reacting to
+        cover the possible operation events listed above.
+        '''
+        pass
+
+
+class AdapterOpListHandler(OpListHandler):
+    ''':class:`~kivy.adapters.list_ops.AdapterOpListHandler` is a helper class
     for :class:`~kivy.adapters.listadapter.ListAdapter`. It reacts to the
     following operations that are possible for a OpObservableList (OOL)
     instance in an adapter:
@@ -75,7 +89,7 @@ class AdapterListOpHandler(ListOpHandler):
 
         self.duplicates_allowed = duplicates_allowed
 
-        super(AdapterListOpHandler, self).__init__()
+        super(AdapterOpListHandler, self).__init__()
 
     def data_changed(self, *args):
 
@@ -86,7 +100,7 @@ class AdapterListOpHandler(ListOpHandler):
         if len(args) == 3:
             op_info = args[2]
         else:
-            op_info = ListOpInfo('OOL_set', 0, 0)
+            op_info = OpListInfo('OOL_set', 0, 0)
 
         # Make a copy in the adapter for more convenient access by observers.
         self.adapter.op_info = op_info

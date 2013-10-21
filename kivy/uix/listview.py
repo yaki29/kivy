@@ -618,14 +618,9 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 
-from kivy.properties import BooleanProperty
-from kivy.properties import DictProperty
-from kivy.properties import ListProperty
-from kivy.properties import NumericProperty
-from kivy.properties import ObjectProperty
-
-from kivy.properties import DictOpInfo
-from kivy.properties import ListOpInfo
+from kivy.properties import BooleanProperty, DictProperty, \
+        ListProperty, NumericProperty, ObjectProperty, \
+        OpDictInfo, OpListInfo
 
 from kivy.uix.abstractview import AbstractView
 from kivy.uix.behaviors import ButtonBehavior
@@ -1533,10 +1528,10 @@ class ListView(AbstractView, EventDispatcher):
 
         op = op_info.op_name
 
-        if isinstance(op_info, ListOpInfo):
+        if isinstance(op_info, OpListInfo):
             start_index = op_info.start_index
             end_index = op_info.end_index
-        elif isinstance(op_info, DictOpInfo):
+        elif isinstance(op_info, OpDictInfo):
             keys = op_info.keys
             start_index, end_index = self.adapter.additional_op_info
 
@@ -1643,22 +1638,4 @@ class ListView(AbstractView, EventDispatcher):
         .. versionadded:: 1.8
 
         '''
-        return self.adapter.get_selection() if self.adapter else None
-
-    def get_first_selected(self):
-        '''A convenience method to call to the adapter for the first selected
-        item.
-
-        .. versionadded:: 1.8
-
-        '''
-        return self.adapter.get_first_selected() if self.adapter else None
-
-    def get_last_selected(self):
-        '''A convenience method to call to the adapter for the last selected
-        item.
-
-        .. versionadded:: 1.8
-
-        '''
-        return self.adapter.get_last_selected() if self.adapter else None
+        return self.adapter.selection if self.adapter else []

@@ -56,7 +56,7 @@ __all__ = ('ListAdapter', )
 import inspect
 
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.list_ops import AdapterListOpHandler
+from kivy.adapters.list_ops import AdapterOpListHandler
 
 from kivy.models import SelectableDataItem
 
@@ -95,7 +95,7 @@ class ListAdapter(Selection, Adapter):
     application to change the data list, the name of the data operation that
     occurred, along with start_index, end_index of the item(s) affected are
     stored.  The adapter, via its instance of a
-    :class:`~kivy.properties.ListOpHandler`, has callbacks that handle specific
+    :class:`~kivy.properties.OpListHandler`, has callbacks that handle specific
     operations, and make needed changes to the internal cached_views,
     selection, and related properties, in preparation for sending, in turn, a
     data-changed event to the collection-style widget that uses the adapter.
@@ -117,12 +117,12 @@ class ListAdapter(Selection, Adapter):
         This new class is used in the ListProperty for data.
 
         ListAdapter must react to the events that come for a change to data.
-        It delegates handling of these events to a ListOpHandler
+        It delegates handling of these events to a OpListHandler
         instance, defined in a new module, adapters/list_ops.py. This handling
         mainly involves adjusting cached_views and selection, in support of
         collection type widgets, such as ListView, that use ListAdapter.
 
-        The data_changed() method of the delegate ListOpHandler and methods
+        The data_changed() method of the delegate OpListHandler and methods
         called there do what is needed to cached_views and selection, then they
         dispatch, in turn, up to the owning collection type view, such as
         ListView. The collection type view then reacts with changes to its
@@ -142,7 +142,7 @@ class ListAdapter(Selection, Adapter):
     '''
 
     list_op_handler = ObjectProperty(None)
-    '''An instance of :class:`~kivy.adapters.list_ops.AdapterListOpHandler`,
+    '''An instance of :class:`~kivy.adapters.list_ops.AdapterOpListHandler`,
     containing methods that perform steps needed after the data has changed.
     The methods are responsible for updating cached_views and selection.
 
@@ -167,7 +167,7 @@ class ListAdapter(Selection, Adapter):
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
-        self.list_op_handler = AdapterListOpHandler(
+        self.list_op_handler = AdapterOpListHandler(
                 source_list=self.data, duplicates_allowed=True)
 
         self.bind(selection_mode=self.selection_mode_changed,

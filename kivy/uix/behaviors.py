@@ -19,11 +19,12 @@ do::
 
 '''
 
-__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior')
+__all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
+    'SelectableBehavior')
 
 from kivy.clock import Clock
 from kivy.properties import OptionProperty, ObjectProperty,\
-    NumericProperty, ReferenceListProperty
+    NumericProperty, ReferenceListProperty, BooleanProperty
 from weakref import ref
 from kivy.config import Config
 from kivy.metrics import sp
@@ -412,4 +413,14 @@ class DragBehavior(object):
         super(DragBehavior, self).on_touch_down(touch)
         touch.pop()
         return
+
+
+class SelectableBehavior(object):
+
+    is_selected = BooleanProperty(False)
+    '''Selection behavior. When combined with a widget, it will be used to
+    manage the widget selection.
+
+    :data:`is_selected` is a :class:`~kivy.properties.BooleanProperty`
+    '''
 

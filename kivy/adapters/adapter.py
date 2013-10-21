@@ -37,21 +37,17 @@ Arguments:
 
 __all__ = ('Adapter', )
 
-import inspect
-
 from kivy.adapters.args_converters import list_item_args_converter
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
-from kivy.properties import DictProperty
-from kivy.properties import ObjectProperty
+from kivy.properties import DictProperty, ObjectProperty
+from kivy.utils import deprecated
 
 
 class Adapter(EventDispatcher):
     '''An :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
     an :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses,
     such as a :class:`~kivy.uix.listview.ListView`.
-
-    .. versionadded:: 1.5
 
     .. versionchanged:: 1.8.0
 
@@ -84,9 +80,6 @@ class Adapter(EventDispatcher):
 
     :data:`data` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-
-    .. versionadded:: 1.5
-
     '''
 
     cls = ObjectProperty(None)
@@ -95,9 +88,6 @@ class Adapter(EventDispatcher):
 
     :data:`cls` is an :class:`~kivy.properties.ObjectProperty` and defaults
     to None.
-
-    .. versionadded:: 1.5
-
     '''
 
     template = ObjectProperty(None)
@@ -106,12 +96,9 @@ class Adapter(EventDispatcher):
 
     :data:`template` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-
-    .. versionadded:: 1.5
-
     '''
 
-    args_converter = ObjectProperty(None)
+    args_converter = ObjectProperty(list_item_args_converter)
     '''
     A function that prepares an args dict for the cls or kv template to build
     a view from a data item.
@@ -121,9 +108,6 @@ class Adapter(EventDispatcher):
 
     :data:`args_converter` is an :class:`~kivy.properties.ObjectProperty` and
     defaults to None.
-
-    .. versionadded:: 1.5
-
     '''
 
     cached_views = DictProperty({})
@@ -143,7 +127,7 @@ class Adapter(EventDispatcher):
 
     def __init__(self, **kwargs):
 
-        if not 'data' in kwargs:
+        if 'data' not in kwargs:
             raise Exception('adapter: input must include data argument')
 
         if 'cls' in kwargs:
@@ -162,9 +146,7 @@ class Adapter(EventDispatcher):
 
         super(Adapter, self).__init__(**kwargs)
 
-        if not 'args_converter' in kwargs:
-            self.args_converter = list_item_args_converter
-
+    @deprecated
     def bind_triggers_to_view(self, func):
         '''
         .. deprecated:: 1.8
@@ -204,11 +186,6 @@ class Adapter(EventDispatcher):
             the first position, along with additional items, per adapter.
         '''
         pass
-
-    def _is_a_lambda(self, v):
-        # http://stackoverflow.com/questions/3655842/
-        #                 how-to-test-whether-a-variable-holds-a-lambda
-        return isinstance(v, type(lambda: None)) and v.__name__ == '<lambda>'
 
     def create_view(self, index):
         '''This method returns the data_item at the index, and a view built

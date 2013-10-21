@@ -1,6 +1,6 @@
 '''
 Selection
-=================
+=========
 
 .. versionadded:: 1.8
 
@@ -13,61 +13,12 @@ Selection
 
 Elements that control selection behaviour:
 
-* *selection*, a list of selected items.
-
-* *selection_mode*, 'single', 'multiple', 'none'
-
-* *allow_empty_selection*, a boolean -- If False, a selection is forced. If
+- *selection*, a list of selected items.
+- *selection_mode*, 'single', 'multiple', 'none'
+- *allow_empty_selection*, a boolean -- If False, a selection is forced. If
   True, and only user or programmatic action will change selection, it can
   be empty.
 
-    :Events:
-        `on_selection_change`: (selectable_item, selectable_item list )
-            Fired when selection changes, more generally, as when selection is
-            set entirely, or when any operation is performed, per the gross
-            dispatching done via ObservableList.
-
-.. versionchanged:: 1.8.0
-
-    Broke this code out of :class:`ListAdapter` into a separate mixin class
-    that is used in Adapter. This way all adapters have selection available.
-
-    Added convenience methods, get_selection() and get_first_selected_item().
-
-    Changed the way select_list() and deselect_list() avoid uneeded
-    dispatching, which allows the API to include the usual binding to
-    selection, as compared to the original way, where only binding to
-    on_selection_change was suggested.
-
-    Added a batch_delete() to ObservableList in the selection list This method
-    is for calling from revised select_list() and deselect_list() methods. This
-    is part of a change to allow selection to be observed directly, to replace
-    the on_selection_change event.  Now either of the following will work, but
-    the first is preferred:
-
-        1) ...adapter.bind(selection=some_method)
-
-        2) ...adapter.bind(on_selection_change=some_method)
-
-    Events are the normal type, where dispatches happen as a result of the
-    list being set, or as a result of any change.
-
-    Moved selection.py out of kivy/adapters to kivy/, to allow use in
-    traditional controllers, which do not do item view creation and caching
-    covered by adapters.
-
-    Changed references to view, item_view, and view_list to selectable_item,
-    item, and selectable_item_list, to make it clear that Selection work with
-    non-view items, as are used in traditional controllers. Also, changed many
-    references for data item to model data item, to make the distinction
-    between selectable data items, the items for which selection is maintained,
-    and associated model data. Selectable items are view instances for
-    adapters, but they may be normal Python class instances for controllers.
-    Model data can be anything, even Python class instances, but more typically
-    consists of primitives such as integers, floats, strings, or dicts with
-    those, etc.
-
-    Deprecated propagate_selection_to_data, in favor of sync_with_model_data.
 '''
 
 __all__ = ('Selection', )
@@ -75,16 +26,22 @@ __all__ = ('Selection', )
 import inspect
 from kivy.event import EventDispatcher
 from kivy.adapters.models import SelectableDataItem
-from kivy.properties import BooleanProperty
-from kivy.properties import ListProperty
-from kivy.properties import NumericProperty
-from kivy.properties import OptionProperty
+from kivy.uix.behaviors import SelectableBehavior
+from kivy.properties import BooleanProperty, ListProperty, \
+        NumericProperty, OptionProperty
 
 
 class Selection(EventDispatcher):
-    '''
-    A base class for adapters and controllers interfacing with lists,
+    '''A base class for adapters and controllers interfacing with lists,
     dictionaries or other collections.
+
+    :Events:
+        `on_selection_change`: (selectable_item, selectable_item list )
+            Fired when selection changes, more generally, as when selection is
+            set entirely, or when any operation is performed, per the gross
+            dispatching done via ObservableList.
+
+    See module documentation for more informations.
     '''
 
     selection = ListProperty([])
@@ -92,9 +49,6 @@ class Selection(EventDispatcher):
 
     :data:`selection` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
-
-    .. versionadded:: 1.5
-
     '''
 
     selection_mode = OptionProperty('single',
@@ -115,9 +69,6 @@ class Selection(EventDispatcher):
 
     :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
     defaults to 'single'.
-
-    .. versionadded:: 1.5
-
     '''
 
     propagate_selection_to_data = BooleanProperty(False)
@@ -178,9 +129,6 @@ class Selection(EventDispatcher):
 
     :data:`allow_empty_selection` is a
     :class:`~kivy.properties.BooleanProperty` and defaults to True.
-
-    .. versionadded:: 1.5
-
     '''
 
     selection_limit = NumericProperty(-1)
@@ -191,9 +139,6 @@ class Selection(EventDispatcher):
 
     :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty` and
     defaults to -1 (no limit).
-
-    .. versionadded:: 1.5
-
     '''
 
     __events__ = ('on_selection_change', )
@@ -205,22 +150,6 @@ class Selection(EventDispatcher):
             kwargs['sync_with_model_data'] = \
                     kwargs['propagate_selection_to_data']
         super(Selection, self).__init__(**kwargs)
-
-        # Check for required methods:
-        if not hasattr(self, 'get_data_item'):
-            raise Exception(('Selection: mixing in Selection requires '
-                             'get_data_item().'))
-
-        if (not hasattr(self, 'get_view')
-                and not hasattr(self, 'get_selectable_item')):
-            raise Exception(('Selection: mixing in Selection requires '
-                             'get_view() or get_selectable_item().'))
-
-        if (hasattr(self, 'get_view')
-                and hasattr(self, 'get_selectable_item')):
-            raise Exception(('Selection: mixing in Selection requires '
-                             'choosing between get_view() and '
-                             'get_selectable_item().'))
 
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection)
@@ -236,21 +165,6 @@ class Selection(EventDispatcher):
 
     def on_selection_change(self, *args):
         pass
-
-    def get_selection(self):
-        '''A convenience method.
-        '''
-        return self.selection
-
-    def get_first_selected(self):
-        '''A convenience method.
-        '''
-        return self.selection[0] if self.selection else None
-
-    def get_last_selected(self):
-        '''A convenience method.
-        '''
-        return self.selection[-1] if self.selection else None
 
     def handle_selection(self, item, hold_dispatch=False, *args):
 
@@ -317,6 +231,9 @@ class Selection(EventDispatcher):
     def set_model_data_item_selection(self, item, value):
         if isinstance(item, SelectableDataItem):
             item.is_selected = value
+        elif isinstance(item, SelectableBehavior):
+            item.is_selected = value
+        '''
         elif type(item) == dict:
             if 'is_selected' in item:
                 item['is_selected'] = value
@@ -326,6 +243,7 @@ class Selection(EventDispatcher):
                 item.is_selected()
             else:
                 item.is_selected = value
+        '''
 
     def select_item(self, item, add_to_selection=True):
 
@@ -443,13 +361,29 @@ class Selection(EventDispatcher):
         self.check_for_empty_selection()
 
     def check_for_empty_selection(self, *args):
-        if not self.allow_empty_selection:
-            if len(self.selection) == 0:
-                # Select the first item if we have it.
-                if hasattr(self, 'get_view'):
-                    view = self.get_view(0)
-                    if view is not None:
-                        self.handle_selection(view)
-                elif hasattr(self, 'get_selectable_item'):
-                    item = self.get_selectable_item(0)
-                    self.handle_selection(item)
+        if self.allow_empty_selection:
+            return
+        if len(self.selection) != 0:
+            return
+        # Select the first item if we have it.
+        item = None
+        try:
+            item = self.get_selectable_item(0)
+        except NotImplemented:
+            item = self.get_view(0)
+        if item is not None:
+            self.handle_selection(item)
+
+    #
+    # methods that user can overload
+    #
+
+    def get_data_item(self, index):
+        pass
+
+    def get_selectable_item(self, index):
+        raise NotImplemented()
+
+    def get_view(self, index):
+        pass
+

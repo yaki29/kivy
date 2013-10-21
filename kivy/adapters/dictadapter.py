@@ -18,19 +18,13 @@ __all__ = ('DictAdapter', )
 import inspect
 
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.dict_ops import AdapterDictOpHandler
-from kivy.adapters.list_ops import AdapterListOpHandler
-
+from kivy.adapters.dict_ops import AdapterOpDictHandler
+from kivy.adapters.list_ops import AdapterOpListHandler
 from kivy.models import SelectableDataItem
-
-from kivy.properties import DictProperty
-from kivy.properties import ListProperty
-from kivy.properties import ObjectProperty
-
-from kivy.properties import OpObservableList
-from kivy.properties import OpObservableDict
-
 from kivy.selection import Selection
+from kivy.properties import DictProperty, ListProperty, ObjectProperty, \
+        OpObservableDict, OpObservableList
+
 
 
 class DictAdapter(Selection, Adapter):
@@ -63,7 +57,7 @@ class DictAdapter(Selection, Adapter):
     Here we also have a data property, which is a
     :class:`~kivy.properties.OpObservableDict`, sending change info for
     possible ops to an associated helper op handler,
-    :class:`~kivy.adapters.dict_ops.AdapterDictOpHandler`. The op handler
+    :class:`~kivy.adapters.dict_ops.AdapterOpDictHandler`. The op handler
     responds to data changes by updating cached_views and selection, in support
     of the "collection" style view that uses this adapter.
 
@@ -76,7 +70,7 @@ class DictAdapter(Selection, Adapter):
 
     .. versionchanged:: 1.8.0
 
-        New classes, OpObserverableList and OpObservableDict, were added to
+        New classes, OpObservableList and OpObservableDict, were added to
         kivy/properties.pyx as alternatives to ObservableList and
         ObservableDict, which only dispatch when data is set, or when any
         change occurs. The new ObObservableList and OpObservableDict dispatch
@@ -87,14 +81,14 @@ class DictAdapter(Selection, Adapter):
 
         DictAdapter must react to the events that come for a change to
         sorted_keys or to data. It delegates handling of these events for
-        sorted_keys to a ListOpHandler instance, defined in a new module,
+        sorted_keys to a OpListHandler instance, defined in a new module,
         adapters/list_ops.py.  Likewise, for data, it delegates event handling
-        to a dedicated DictOpHandler. This handling mainly involves adjusting
+        to a dedicated OpDictHandler. This handling mainly involves adjusting
         cached_views and selection, in support of collection type widgets, such
         as ListView, that use DictAdapter.
 
-        The data_changed() method of the delegate ListOpHandler and
-        DictOpHandler modules, and methods used there, do what is needed to
+        The data_changed() method of the delegate OpListHandler and
+        OpDictHandler modules, and methods used there, do what is needed to
         cached_views and selection, then they dispatch, in turn, up to the
         owning collection type view, such as ListView. The collection type view
         then reacts with changes to its children and other parts of the user
@@ -123,7 +117,7 @@ class DictAdapter(Selection, Adapter):
     '''
 
     dict_op_handler = ObjectProperty(None)
-    '''An instance of :class:`~kivy.adapters.dict_ops.DictOpHandler`,
+    '''An instance of :class:`~kivy.adapters.dict_ops.OpDictHandler`,
     containing methods that perform steps needed after the data (a
     :class:`~kivy.properties.OpObservableDict`) has changed. The
     methods are responsible for updating cached_views and selection.
@@ -168,12 +162,12 @@ class DictAdapter(Selection, Adapter):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        # Delegate handling for sorted_keys changes to a ListOpHandler.
-        self.list_op_handler = AdapterListOpHandler(
+        # Delegate handling for sorted_keys changes to a OpListHandler.
+        self.list_op_handler = AdapterOpListHandler(
                 source_list=self.sorted_keys, duplicates_allowed=False)
 
-        # Delegate handling for data changes to a DictOpHandler.
-        self.dict_op_handler = AdapterDictOpHandler()
+        # Delegate handling for data changes to a OpDictHandler.
+        self.dict_op_handler = AdapterOpDictHandler()
 
         self.bind(sorted_keys=self.list_op_handler.data_changed,
                   data=self.dict_op_handler.data_changed)

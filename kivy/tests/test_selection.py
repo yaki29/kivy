@@ -261,7 +261,7 @@ class ListController(Selection):
         if len(args) == 3:
             op_info = args[2]
         else:
-            op_info = ListOpInfo('OOL_set', 0, 0)
+            op_info = OpListInfo('OOL_set', 0, 0)
 
         op = op_info.op_name
         start_index = op_info.start_index
